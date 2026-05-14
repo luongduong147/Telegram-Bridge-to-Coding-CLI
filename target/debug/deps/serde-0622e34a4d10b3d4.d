@@ -1,0 +1,14 @@
+/var/account/duonglnt/telegram_bridge/target/debug/deps/serde-0622e34a4d10b3d4.d: /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /var/account/duonglnt/telegram_bridge/target/debug/build/serde-be62b92d4562b0f4/out/private.rs
+
+/var/account/duonglnt/telegram_bridge/target/debug/deps/libserde-0622e34a4d10b3d4.rlib: /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /var/account/duonglnt/telegram_bridge/target/debug/build/serde-be62b92d4562b0f4/out/private.rs
+
+/var/account/duonglnt/telegram_bridge/target/debug/deps/libserde-0622e34a4d10b3d4.rmeta: /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /var/account/duonglnt/telegram_bridge/target/debug/build/serde-be62b92d4562b0f4/out/private.rs
+
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/var/account/duonglnt/telegram_bridge/target/debug/build/serde-be62b92d4562b0f4/out/private.rs:
+
+# env-dep:OUT_DIR=/var/account/duonglnt/telegram_bridge/target/debug/build/serde-be62b92d4562b0f4/out

@@ -1,0 +1,14 @@
+/var/account/duonglnt/telegram_bridge/target/debug/deps/thiserror-c9b33271ff70b79c.d: /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs /var/account/duonglnt/telegram_bridge/target/debug/build/thiserror-2d968b5c7ad9a1bf/out/private.rs
+
+/var/account/duonglnt/telegram_bridge/target/debug/deps/libthiserror-c9b33271ff70b79c.rlib: /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs /var/account/duonglnt/telegram_bridge/target/debug/build/thiserror-2d968b5c7ad9a1bf/out/private.rs
+
+/var/account/duonglnt/telegram_bridge/target/debug/deps/libthiserror-c9b33271ff70b79c.rmeta: /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs /var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs /var/account/duonglnt/telegram_bridge/target/debug/build/thiserror-2d968b5c7ad9a1bf/out/private.rs
+
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs:
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs:
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs:
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs:
+/var/account/duonglnt/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs:
+/var/account/duonglnt/telegram_bridge/target/debug/build/thiserror-2d968b5c7ad9a1bf/out/private.rs:
+
+# env-dep:OUT_DIR=/var/account/duonglnt/telegram_bridge/target/debug/build/thiserror-2d968b5c7ad9a1bf/out
