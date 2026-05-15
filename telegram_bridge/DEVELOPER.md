@@ -78,6 +78,20 @@ cargo run --release
 ./target/release/telegram_bridge
 ```
 
+### Chạy với tmux (khuyến nghị)
+
+Chạy bot trong tmux session để dễ kiểm soát (log, kill, attach).
+
+```bash
+# Cách 1: Chạy binary đã build sẵn
+tmux new-session -d -s telegram-bridge './target/release/telegram_bridge'
+
+# Cách 2: Chạy trực tiếp cargo (có build nếu cần)
+tmux new-session -d -s telegram-bridge -c /var/account/duonglnt/telegram_bridge 'cargo run --release'
+```
+
+Sau đó dùng các lệnh bên dưới để kiểm tra/kill/log.
+
 ### Chạy Docker
 ```bash
 docker run -d \
@@ -110,8 +124,19 @@ docker ps | grep telegram-bridge
 docker logs telegram-bridge
 ```
 
-### Lưu ý
-Bot hiện tại chạy OpenCode CLI trực tiếp qua `std::process::Command` (không dùng tmux như bản thiết kế cũ).
+### Kiểm tra tmux session
+```bash
+# Kiểm tra session có tồn tại không
+tmux has-session -t telegram-bridge 2>/dev/null && echo "ACTIVE" || echo "INACTIVE"
+
+# Danh sách tất cả tmux sessions
+tmux list-sessions
+
+# Attach vào session để xem realtime
+tmux attach -t telegram-bridge
+
+# Detach khỏi session: Ctrl+B, rồi nhấn D
+```
 
 ---
 
@@ -134,6 +159,12 @@ docker stop telegram-bridge
 docker rm telegram-bridge
 ```
 
+### Kill tmux session
+```bash
+# Kill tmux session (bot trong đó sẽ tự tắt)
+tmux kill-session -t telegram-bridge
+```
+
 
 
 ---
@@ -145,6 +176,20 @@ Mặc định log ra stdout với định dạng tracing-subscriber.
 Có thể redirect khi chạy:
 ```bash
 ./target/release/telegram_bridge 2>&1 | tee -a bridge.log
+```
+
+### Tmux (khi chạy trong tmux)
+```bash
+# Xem log realtime (pipe mode)
+tmux pipe-pane -t telegram-bridge -o "cat > bridge.log"
+
+# Hoặc attach vào session để xem trực tiếp
+tmux attach -t telegram-bridge
+# Detach: Ctrl+B, D
+
+# Lấy nội dung pane ra stdout
+tmux capture-pane -t telegram-bridge -p -S -100
+# -S -100: 100 dòng gần nhất
 ```
 
 ### Docker
@@ -187,6 +232,7 @@ less bridge.log           # Xem toàn bộ
 | `AUTHORIZED_CHAT_ID` | User ID được phép dùng bot | Không (public nếu để trống) |
 | `OPENCODE_WORKDIR` | Working directory cho OpenCode | Không (mặc định: /workspace) |
 | `OPENCODE_BIN` | Đường dẫn opencode binary | Không (mặc định: opencode) |
+| `TMUX_SESSION_NAME` | Tên tmux session cho bot | Không (mặc định: opencode-bridge) |
 
 ---
 
