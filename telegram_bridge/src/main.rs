@@ -3,6 +3,13 @@ mod bot;
 mod session;
 mod executor;
 mod handler;
+mod ui;
+mod stream;
+mod filter;
+mod markdown;
+mod cli;
+
+pub use bot::AppState;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -18,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
     let config = config::Config::from_env()?;
 
     tracing::info!(
-        workdir = %config.opencode_workdir.display(),
+        workdirs = ?config.workdirs,
         "Starting Telegram Bridge"
     );
 

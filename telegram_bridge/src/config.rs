@@ -1,11 +1,25 @@
 use std::path::PathBuf;
 
 #[derive(Clone, Debug)]
+pub struct CliConfig {
+    pub name: String,
+    pub bin_path: String,
+}
+
+#[derive(Clone, Debug)]
 pub struct Config {
     pub bot_token: String,
     pub authorized_chat_id: Option<i64>,
-    pub opencode_workdir: PathBuf,
-    pub opencode_bin: String,
+    pub workdirs: Vec<PathBuf>,
+    pub default_workdir_index: usize,
+    pub clis: Vec<CliConfig>,
+    pub default_cli: String,
+}
+
+fn parse_cli_env(index: usize) -> Option<CliConfig> {
+    let name = std::env::var(format!("CLI_{}_NAME", index)).ok()?;
+    let bin_path = std::env::var(format!("CLI_{}_BIN", index)).ok()?;
+    Some(CliConfig { name, bin_path })
 }
 
 impl Config {
@@ -21,18 +35,42 @@ impl Config {
             Err(_) => None,
         };
 
-        let opencode_workdir = std::env::var("OPENCODE_WORKDIR")
-            .unwrap_or_else(|_| "/workspace".to_string())
-            .into();
+        let workdirs: Vec<PathBuf> = match std::env::var("WORKDIRS") {
+            Ok(v) => v.split(',').map(|s| PathBuf::from(s.trim())).collect(),
+            Err(_) => {
+                let single = std::env::var("OPENCODE_WORKDIR")
+                    .unwrap_or_else(|_| "/workspace".to_string());
+                vec![PathBuf::from(single)]
+            }
+        };
 
-        let opencode_bin = std::env::var("OPENCODE_BIN")
+        let default_workdir_index = std::env::var("DEFAULT_WORKDIR_INDEX")
+            .ok()
+            .and_then(|v| v.parse::<usize>().ok())
+            .filter(|&i| i < workdirs.len())
+            .unwrap_or(0);
+
+        let mut clis: Vec<CliConfig> = (1..=32).filter_map(parse_cli_env).collect();
+
+        if clis.is_empty() {
+            let legacy_bin = std::env::var("OPENCODE_BIN")
+                .unwrap_or_else(|_| "opencode".to_string());
+            clis.push(CliConfig {
+                name: "opencode".to_string(),
+                bin_path: legacy_bin,
+            });
+        }
+
+        let default_cli = std::env::var("DEFAULT_CLI")
             .unwrap_or_else(|_| "opencode".to_string());
 
         Ok(Self {
             bot_token,
             authorized_chat_id,
-            opencode_workdir,
-            opencode_bin,
+            workdirs,
+            default_workdir_index,
+            clis,
+            default_cli,
         })
     }
 
@@ -41,5 +79,18 @@ impl Config {
             Some(id) => chat_id == id,
             None => true,
         }
+    }
+
+    pub fn current_workdir(&self) -> &PathBuf {
+        &self.workdirs[self.default_workdir_index]
+    }
+
+    pub fn get_cli(&self, name: &str) -> Option<&CliConfig> {
+        self.clis.iter().find(|c| c.name == name)
+    }
+
+    pub fn default_cli_config(&self) -> &CliConfig {
+        self.get_cli(&self.default_cli)
+            .unwrap_or_else(|| &self.clis[0])
     }
 }
