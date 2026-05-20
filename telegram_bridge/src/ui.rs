@@ -2,8 +2,12 @@ use teloxide::types::{InlineKeyboardButton, InlineKeyboardMarkup};
 
 use crate::markdownv2;
 
+const TELEGRAM_MAX: usize = 4096;
+const SPLIT_MARGIN: usize = 200;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum BlockType {
+    UserContext,
     Thinking,
     CommandExec,
 }
@@ -11,8 +15,17 @@ pub enum BlockType {
 impl BlockType {
     pub fn label(&self) -> &'static str {
         match self {
+            BlockType::UserContext => "Context",
             BlockType::Thinking => "Response",
             BlockType::CommandExec => "Command",
+        }
+    }
+
+    pub fn emoji(&self) -> &'static str {
+        match self {
+            BlockType::UserContext => "\u{1f4ac}",
+            BlockType::Thinking => "\u{1f9e0}",
+            BlockType::CommandExec => "\u{1f4bb}",
         }
     }
 }
@@ -29,6 +42,7 @@ pub struct MessageUiState {
     pub blocks: Vec<UiBlock>,
     pub has_finished: bool,
     pub is_hidden: bool,
+    pub sent_message_ids: Vec<i32>,
 }
 
 impl MessageUiState {
@@ -37,6 +51,7 @@ impl MessageUiState {
             blocks: vec![],
             has_finished: false,
             is_hidden: false,
+            sent_message_ids: vec![],
         }
     }
 
@@ -68,14 +83,13 @@ impl MessageUiState {
         markdownv2::escape(s.lines().next().unwrap_or(""))
     }
 
-    fn truncate(s: &str) -> String {
-        let max = 3000;
-        if s.len() > max {
-            let mut t = s[..max].to_string();
-            t.push_str("... (trimmed)");
-            t
+    fn short_summary(s: &str, max: usize) -> String {
+        let first = s.lines().next().unwrap_or("");
+        let escaped = markdownv2::escape(first);
+        if escaped.len() > max {
+            format!("{}...", &escaped[..max.saturating_sub(3)])
         } else {
-            s.to_string()
+            escaped
         }
     }
 
@@ -84,31 +98,43 @@ impl MessageUiState {
             return "\u{1f648} *Da an*".to_string();
         }
         let mut out = String::new();
+        let mut first = true;
         for block in &self.blocks {
+            if !first { out.push('\n'); }
+            first = false;
             match block.block_type {
+                BlockType::UserContext => {
+                    out.push_str(&format!("{} *User Context*\n", BlockType::UserContext.emoji()));
+                    for line in block.content.lines() {
+                        out.push_str(&markdownv2::escape(line));
+                        out.push('\n');
+                    }
+                }
                 BlockType::Thinking => {
                     if block.is_expanded {
-                        out.push_str("\u{1f9e0} *Response:*\n");
-                        let escaped = markdownv2::escape(&Self::truncate(&block.content));
+                        out.push_str(&format!("{} *Response:*\n", BlockType::Thinking.emoji()));
+                        let escaped = markdownv2::escape(&block.content);
                         out.push_str(&escaped);
                         out.push('\n');
                     } else {
                         let preview = Self::first_line(&block.content);
                         out.push_str(&format!(
-                            "\u{1f9e0} *Response*  `{}`\n\n",
+                            "{} *Response*  `{}`\n",
+                            BlockType::Thinking.emoji(),
                             preview
                         ));
                     }
                 }
                 BlockType::CommandExec => {
                     if block.is_expanded {
-                        out.push_str("\u{1f4bb} *Command:*\n```\n");
-                        out.push_str(&Self::truncate(&block.content));
+                        out.push_str(&format!("{} *Command:*\n```\n", BlockType::CommandExec.emoji()));
+                        out.push_str(&block.content);
                         out.push_str("```\n");
                     } else {
-                        let preview = Self::first_line(&block.content);
+                        let preview = Self::short_summary(&block.content, 80);
                         out.push_str(&format!(
-                            "\u{1f4bb} *Command*  `{}`\n\n",
+                            "{} *Command*  `{}`\n",
+                            BlockType::CommandExec.emoji(),
                             preview
                         ));
                     }
@@ -116,26 +142,50 @@ impl MessageUiState {
             }
         }
         if !self.has_finished {
-            out.push_str("\n\u{23f3} *Dang xu ly\\.\\.\\.*");
+            out.push_str(&format!("\n{} *Dang xu ly\\.\\.\\.*", "\u{23f3}"));
         }
         out
+    }
+
+    pub fn split_into_messages(&self) -> Vec<String> {
+        let full = self.render_markdown();
+        if full.len() <= TELEGRAM_MAX {
+            return vec![full];
+        }
+        let mut parts = Vec::new();
+        let mut start = 0;
+        while start < full.len() {
+            let end = (start + TELEGRAM_MAX - SPLIT_MARGIN).min(full.len());
+            if end < full.len() {
+                if let Some(break_pos) = full[start..end].rfind('\n') {
+                    parts.push(full[start..start + break_pos].to_string());
+                    start += break_pos + 1;
+                } else {
+                    parts.push(full[start..end].to_string());
+                    start = end;
+                }
+            } else {
+                parts.push(full[start..].to_string());
+                break;
+            }
+        }
+        parts
     }
 
     pub fn build_keyboard(&self) -> InlineKeyboardMarkup {
         let mut rows: Vec<Vec<InlineKeyboardButton>> = Vec::new();
         if !self.is_hidden {
             for (i, block) in self.blocks.iter().enumerate() {
-                let emoji = match block.block_type {
-                    BlockType::Thinking => "\u{1f9e0}",
-                    BlockType::CommandExec => "\u{1f4bb}",
-                };
+                if block.block_type == BlockType::UserContext {
+                    continue;
+                }
                 let (action, label) = if block.is_expanded {
                     ("collapse", "\u{1f53d} Thu gon")
                 } else {
                     ("expand", "\u{25b6}\u{fe0f} Xem")
                 };
                 rows.push(vec![InlineKeyboardButton::callback(
-                    format!("{} {} {}", emoji, block.block_type.label(), label),
+                    format!("{} {} {}", block.block_type.emoji(), block.block_type.label(), label),
                     format!("{}:{}", action, i),
                 )]);
             }

@@ -83,6 +83,16 @@ pub async fn handle_prompt(
     };
 
     let mut ui_state = MessageUiState::new();
+
+    if let Some(ctx) = backend.get_user_context() {
+        let escaped = markdownv2::escape(&ctx);
+        ui_state.start_new_block(crate::ui::BlockType::UserContext, &escaped);
+        let ctx_md = ui_state.render_markdown();
+        let _ = bot.edit_message_text(chat_id, message_id, &ctx_md)
+            .parse_mode(ParseMode::MarkdownV2)
+            .await;
+    }
+
     {
         let mut app = app_state.lock().await;
         app.ui_states.insert(message_id.0, ui_state.clone());
@@ -116,7 +126,7 @@ pub async fn handle_prompt(
                         let trimmed = line.trim().to_string();
                         if let Some((bt, content)) = backend.process_line(&trimmed) {
                             let filtered = filter_sensitive(&content);
-                            let line = if bt == crate::ui::BlockType::CommandExec {
+                            let display = if bt == crate::ui::BlockType::CommandExec {
                                 filtered
                             } else {
                                 markdownv2::escape(&filtered)
@@ -125,9 +135,9 @@ pub async fn handle_prompt(
                                 .map(|b| b.block_type != bt)
                                 .unwrap_or(true);
                             if should_start_new {
-                                ui_state.start_new_block(bt.clone(), &line);
+                                ui_state.start_new_block(bt.clone(), &display);
                             } else {
-                                ui_state.push_line(&line);
+                                ui_state.push_line(&display);
                             }
                             has_pending = true;
                         }
@@ -164,16 +174,20 @@ pub async fn handle_prompt(
 
     ui_state.has_finished = true;
     tracing::info!("Process finished, sending final message");
-    let final_text = ui_state.render_markdown();
+
+    let parts = ui_state.split_into_messages();
     let kb = ui_state.build_keyboard();
-    bot.edit_message_text(
-        chat_id,
-        message_id,
-        format!("{}\n\n\u{2705} *Hoan thanh*", final_text),
-    )
-    .parse_mode(ParseMode::MarkdownV2)
-    .reply_markup(kb)
-    .await?;
+    if let Some(first) = parts.first() {
+        bot.edit_message_text(chat_id, message_id, first)
+            .parse_mode(ParseMode::MarkdownV2)
+            .reply_markup(kb)
+            .await?;
+    }
+    for part in parts.iter().skip(1) {
+        bot.send_message(chat_id, part)
+            .parse_mode(ParseMode::MarkdownV2)
+            .await?;
+    }
 
     {
         let mut sess = session.lock().await;

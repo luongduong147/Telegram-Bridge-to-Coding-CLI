@@ -15,6 +15,7 @@ pub trait CliBackend: Send + Sync {
         workdir: &str,
         prompt: &str,
     ) -> StdCommand;
+    fn get_user_context(&mut self) -> Option<String>;
     fn process_line(&mut self, line: &str) -> Option<(BlockType, String)>;
 }
 

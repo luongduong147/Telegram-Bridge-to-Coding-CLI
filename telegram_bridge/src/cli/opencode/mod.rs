@@ -5,11 +5,15 @@ use crate::ui::BlockType;
 
 pub struct OpenCodeBackend {
     config: CliConfig,
+    user_context_emitted: bool,
 }
 
 impl OpenCodeBackend {
     pub fn new(config: &CliConfig) -> Self {
-        Self { config: config.clone() }
+        Self {
+            config: config.clone(),
+            user_context_emitted: false,
+        }
     }
 
     fn build_run_command(&self, workdir: &str, prompt: &str) -> StdCommand {
@@ -55,6 +59,14 @@ impl super::CliBackend for OpenCodeBackend {
         self.build_json_command(workdir, prompt)
     }
 
+    fn get_user_context(&mut self) -> Option<String> {
+        if self.user_context_emitted {
+            return None;
+        }
+        self.user_context_emitted = true;
+        Some(format!("> build \u{00b7} opencode/deepseek-v4-flash-free"))
+    }
+
     fn process_line(&mut self, line: &str) -> Option<(BlockType, String)> {
         let t = line.trim();
         if t.is_empty() {
@@ -63,10 +75,6 @@ impl super::CliBackend for OpenCodeBackend {
 
         if t == "(no output)" {
             return Some((BlockType::CommandExec, t.to_string()));
-        }
-
-        if t.starts_with('>') {
-            return None;
         }
 
         let exec_prefixes = ["✱", "→", "←", "$ "];

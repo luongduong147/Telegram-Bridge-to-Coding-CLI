@@ -40,6 +40,10 @@ impl super::CliBackend for ClaudeBackend {
         cmd
     }
 
+    fn get_user_context(&mut self) -> Option<String> {
+        None
+    }
+
     fn process_line(&mut self, line: &str) -> Option<(BlockType, String)> {
         let t = line.trim();
         if t.is_empty() {

@@ -212,6 +212,9 @@ pub async fn handle_quick(
     };
 
     let mut all_blocks: Vec<(crate::ui::BlockType, String)> = Vec::new();
+    if let Some(ctx) = backend.get_user_context() {
+        all_blocks.push((crate::ui::BlockType::UserContext, ctx));
+    }
     loop {
         tokio::select! {
             line = stream.read_line() => {
@@ -247,6 +250,7 @@ pub async fn handle_quick(
                 }
                 current_bt = Some(bt.clone());
                 match bt {
+                    crate::ui::BlockType::UserContext => output.push_str("\u{1f4ac} *User Context:*\n"),
                     crate::ui::BlockType::CommandExec => output.push_str("\u{1f4bb} *Command:*\n"),
                     crate::ui::BlockType::Thinking => output.push_str("\u{1f9e0} *Response:*\n"),
                 }
