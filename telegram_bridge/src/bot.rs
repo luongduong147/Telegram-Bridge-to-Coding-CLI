@@ -25,16 +25,10 @@ impl AppState {
 }
 
 pub async fn run(config: Config) -> anyhow::Result<()> {
-    let telegram_ips = ["149.154.167.99", "149.154.167.220", "91.108.56.100"];
-    let mut client_builder = reqwest::Client::builder()
+    let http_client = reqwest::Client::builder()
         .timeout(Duration::from_secs(120))
-        .connect_timeout(Duration::from_secs(30));
-    for ip in &telegram_ips {
-        if let Ok(addr) = format!("{}:443", ip).parse::<std::net::SocketAddr>() {
-            client_builder = client_builder.resolve("api.telegram.org", addr);
-        }
-    }
-    let http_client = client_builder.build()?;
+        .connect_timeout(Duration::from_secs(30))
+        .build()?;
     let bot = Bot::with_client(&config.bot_token, http_client);
 
     let config = Arc::new(config);
