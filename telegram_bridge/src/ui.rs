@@ -1,5 +1,7 @@
 use teloxide::types::{InlineKeyboardButton, InlineKeyboardMarkup};
 
+use crate::markdownv2;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum BlockType {
     Thinking,
@@ -9,7 +11,7 @@ pub enum BlockType {
 impl BlockType {
     pub fn label(&self) -> &'static str {
         match self {
-            BlockType::Thinking => "Thinking",
+            BlockType::Thinking => "Response",
             BlockType::CommandExec => "Command",
         }
     }
@@ -62,11 +64,11 @@ impl MessageUiState {
         });
     }
 
-    fn first_line(s: &str) -> &str {
-        s.lines().next().unwrap_or("")
+    fn first_line(s: &str) -> String {
+        markdownv2::escape(s.lines().next().unwrap_or(""))
     }
 
-    fn truncate_content(s: &str) -> String {
+    fn truncate(s: &str) -> String {
         let max = 3000;
         if s.len() > max {
             let mut t = s[..max].to_string();
@@ -77,47 +79,46 @@ impl MessageUiState {
         }
     }
 
-    pub fn render_html(&self) -> String {
+    pub fn render_markdown(&self) -> String {
         if self.is_hidden {
-            return "\u{1f648} <b>Da an noi dung</b>".to_string();
+            return "\u{1f648} *Da an*".to_string();
         }
-        let mut output = String::new();
+        let mut out = String::new();
         for block in &self.blocks {
             match block.block_type {
                 BlockType::Thinking => {
                     if block.is_expanded {
-                        output.push_str("\u{1f9e0} <b>Thinking Process:</b>\n");
-                        output.push_str(&format!("<pre>{}</pre>\n", Self::truncate_content(&block.content)));
+                        out.push_str("\u{1f9e0} *Response:*\n");
+                        let escaped = markdownv2::escape(&Self::truncate(&block.content));
+                        out.push_str(&escaped);
+                        out.push('\n');
                     } else {
-                        let line_count = block.content.lines().count();
                         let preview = Self::first_line(&block.content);
-                        let escaped = preview.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
-                        output.push_str(&format!(
-                            "\u{1f9e0} <b>Thinking...</b> ({} dong an) <code>{}</code>\n\n",
-                            line_count, escaped
+                        out.push_str(&format!(
+                            "\u{1f9e0} *Response*  `{}`\n\n",
+                            preview
                         ));
                     }
                 }
                 BlockType::CommandExec => {
                     if block.is_expanded {
-                        output.push_str("\u{1f4bb} <b>Command Execution:</b>\n");
-                        output.push_str(&format!("<pre>{}</pre>\n", block.content));
+                        out.push_str("\u{1f4bb} *Command:*\n```\n");
+                        out.push_str(&Self::truncate(&block.content));
+                        out.push_str("```\n");
                     } else {
-                        let line_count = block.content.lines().count();
                         let preview = Self::first_line(&block.content);
-                        let escaped = preview.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
-                        output.push_str(&format!(
-                            "\u{1f4bb} <b>Executing...</b> ({} dong an) <code>{}</code>\n\n",
-                            line_count, escaped
+                        out.push_str(&format!(
+                            "\u{1f4bb} *Command*  `{}`\n\n",
+                            preview
                         ));
                     }
                 }
             }
         }
         if !self.has_finished {
-            output.push_str("\n\u{23f3} <b>Dang xu ly...</b>");
+            out.push_str("\n\u{23f3} *Dang xu ly\\.\\.\\.*");
         }
-        output
+        out
     }
 
     pub fn build_keyboard(&self) -> InlineKeyboardMarkup {
@@ -131,7 +132,7 @@ impl MessageUiState {
                 let (action, label) = if block.is_expanded {
                     ("collapse", "\u{1f53d} Thu gon")
                 } else {
-                    ("expand", "\u{25b6}\u{fe0f} Xem chi tiet")
+                    ("expand", "\u{25b6}\u{fe0f} Xem")
                 };
                 rows.push(vec![InlineKeyboardButton::callback(
                     format!("{} {} {}", emoji, block.block_type.label(), label),
@@ -145,8 +146,11 @@ impl MessageUiState {
                 "interrupt",
             )]);
         }
-        let hide_action = if self.is_hidden { "unhide" } else { "hide" };
-        let hide_label = if self.is_hidden { "\u{1f441} Hien thi" } else { "\u{1f648} An" };
+        let (hide_action, hide_label) = if self.is_hidden {
+            ("unhide", "\u{1f441} Hien")
+        } else {
+            ("hide", "\u{1f648} An")
+        };
         rows.push(vec![InlineKeyboardButton::callback(hide_label, hide_action)]);
         InlineKeyboardMarkup::new(rows)
     }

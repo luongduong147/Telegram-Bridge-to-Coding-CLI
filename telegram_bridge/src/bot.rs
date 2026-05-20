@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
-use teloxide::dispatching::{Dispatcher, UpdateFilterExt};
+use tokio::time::sleep;
 use teloxide::prelude::*;
-use teloxide::types::Update;
+use teloxide::types::UpdateKind;
 
 use crate::config::Config;
 use crate::handler;
@@ -25,10 +25,16 @@ impl AppState {
 }
 
 pub async fn run(config: Config) -> anyhow::Result<()> {
-    let http_client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(60))
-        .connect_timeout(Duration::from_secs(30))
-        .build()?;
+    let telegram_ips = ["149.154.167.99", "149.154.167.220", "91.108.56.100"];
+    let mut client_builder = reqwest::Client::builder()
+        .timeout(Duration::from_secs(120))
+        .connect_timeout(Duration::from_secs(30));
+    for ip in &telegram_ips {
+        if let Ok(addr) = format!("{}:443", ip).parse::<std::net::SocketAddr>() {
+            client_builder = client_builder.resolve("api.telegram.org", addr);
+        }
+    }
+    let http_client = client_builder.build()?;
     let bot = Bot::with_client(&config.bot_token, http_client);
 
     let config = Arc::new(config);
@@ -37,25 +43,54 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
 
     tracing::info!("Bot started, waiting for messages...");
 
-    let handler = teloxide::dptree::entry()
-        .branch(
-            Update::filter_message()
-                .endpoint(handler::handle_message),
-        )
-        .branch(
-            Update::filter_callback_query()
-                .endpoint(handler::callback::handle_callback),
-        );
+    // Test connectivity
+    match bot.get_me().await {
+        Ok(me) => tracing::info!("Connected to Telegram as @{}", me.username.as_deref().unwrap_or("unknown")),
+        Err(e) => tracing::warn!("Initial connectivity check failed: {}", e),
+    }
 
-    Dispatcher::builder(bot, handler)
-        .dependencies(teloxide::dptree::deps![
-            Arc::clone(&config),
-            Arc::clone(&session),
-            Arc::clone(&app_state)
-        ])
-        .build()
-        .dispatch()
-        .await;
+    let mut offset = 0i32;
 
-    Ok(())
+    loop {
+        let updates = match bot.get_updates().offset(offset).timeout(30).await {
+            Ok(upds) => upds,
+            Err(e) => {
+                tracing::error!("getUpdates error: {}", e);
+                sleep(Duration::from_secs(5)).await;
+                continue;
+            }
+        };
+
+        for update in updates {
+            offset = (update.id.0 as i32) + 1;
+            tracing::info!("Update: kind={:?}", update.kind);
+
+            match update.kind {
+                UpdateKind::Message(msg) => {
+                    tracing::info!("Message: {:?}", msg.text());
+                    let b = bot.clone();
+                    let c = Arc::clone(&config);
+                    let s = Arc::clone(&session);
+                    let a = Arc::clone(&app_state);
+                    tokio::spawn(async move {
+                        if let Err(e) = handler::handle_message(b, msg, c, s, a).await {
+                            tracing::error!("handle_message error: {}", e);
+                        }
+                    });
+                }
+                UpdateKind::CallbackQuery(q) => {
+                    let b = bot.clone();
+                    let a = Arc::clone(&app_state);
+                    tokio::spawn(async move {
+                        if let Err(e) = handler::callback::handle_callback(b, q, a).await {
+                            tracing::error!("handle_callback error: {}", e);
+                        }
+                    });
+                }
+                _ => {}
+            }
+        }
+
+        sleep(Duration::from_millis(100)).await;
+    }
 }

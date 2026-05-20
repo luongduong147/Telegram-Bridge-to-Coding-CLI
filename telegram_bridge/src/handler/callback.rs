@@ -33,9 +33,9 @@ pub async fn handle_callback(
         executor::set_interrupt();
         if let Some(ui_state) = state.ui_states.get_mut(&message_id.0) {
             ui_state.has_finished = true;
-            let text = format!("{}\n\n\u{23f9} <b>Da dung theo yeu cau</b>", ui_state.render_html());
+            let text = format!("{}\n\n\u{23f9} *Da dung theo yeu cau*", ui_state.render_markdown());
             bot.edit_message_text(chat_id, message_id, text)
-                .parse_mode(ParseMode::Html)
+                .parse_mode(ParseMode::MarkdownV2)
                 .await?;
         }
         return Ok(());
@@ -44,10 +44,10 @@ pub async fn handle_callback(
     if data == "hide" {
         if let Some(ui_state) = state.ui_states.get_mut(&message_id.0) {
             ui_state.is_hidden = true;
-            let text = ui_state.render_html();
+            let text = ui_state.render_markdown();
             let keyboard = ui_state.build_keyboard();
             bot.edit_message_text(chat_id, message_id, text)
-                .parse_mode(ParseMode::Html)
+                .parse_mode(ParseMode::MarkdownV2)
                 .reply_markup(keyboard)
                 .await?;
         }
@@ -57,10 +57,10 @@ pub async fn handle_callback(
     if data == "unhide" {
         if let Some(ui_state) = state.ui_states.get_mut(&message_id.0) {
             ui_state.is_hidden = false;
-            let text = ui_state.render_html();
+            let text = ui_state.render_markdown();
             let keyboard = ui_state.build_keyboard();
             bot.edit_message_text(chat_id, message_id, text)
-                .parse_mode(ParseMode::Html)
+                .parse_mode(ParseMode::MarkdownV2)
                 .reply_markup(keyboard)
                 .await?;
         }
@@ -83,10 +83,10 @@ pub async fn handle_callback(
             }
         }
 
-        let text = ui_state.render_html();
+        let text = ui_state.render_markdown();
         let keyboard = ui_state.build_keyboard();
         bot.edit_message_text(chat_id, message_id, text)
-            .parse_mode(ParseMode::Html)
+            .parse_mode(ParseMode::MarkdownV2)
             .reply_markup(keyboard)
             .await?;
     }

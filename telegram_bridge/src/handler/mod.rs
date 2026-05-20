@@ -39,6 +39,7 @@ pub async fn handle_message(
     app_state: Arc<Mutex<AppState>>,
 ) -> HandlerResult {
     let chat_id = msg.chat.id.0;
+    tracing::info!("handle_message: text={:?} chat_id={}", msg.text(), chat_id);
     if !config.is_authorized(chat_id) {
         tracing::warn!(chat_id, "Unauthorized access attempt");
         return Ok(());

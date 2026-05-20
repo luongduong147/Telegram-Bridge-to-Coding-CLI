@@ -2,16 +2,13 @@
 
 > Kế thừa từ PLAN.md (v1), tập trung vào **4 tính năng shipping tiếp theo**.
 > Mục tiêu: biến bot từ "gửi prompt → chờ → nhận kết quả" thành phiên bản real-time, đa CLI, có điều khiển.
->
-> **Cập nhật quan trọng (v2.1):** Chuyển từ batch subprocess (`opencode run`)
-> sang **interactive mode** (`opencode` không args) qua PTY. Thay đổi này ảnh hưởng
-> đến toàn bộ kiến trúc streaming, timeout, và cách giao tiếp với CLI.
+
 
 ---
 
 ## I. Tóm tắt trạng thái hiện tại (v1)
 
-### Đã hoạt động (v1 + v2 phase 1)
+### Đã hoạt động (v1)
 - Bot nhận message Telegram, dispatch slash command hoặc plain text
 - Plain text → spawn CLI subprocess (async, pipe stdout)
 - Stream output line-by-line qua `BufReader<ChildStdout>`

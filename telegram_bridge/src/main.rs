@@ -7,6 +7,7 @@ mod ui;
 mod stream;
 mod filter;
 mod markdown;
+mod markdownv2;
 mod cli;
 
 pub use bot::AppState;

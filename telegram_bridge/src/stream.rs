@@ -27,6 +27,7 @@ impl InteractiveStream {
         }
         std_cmd.stdout(Stdio::piped());
         std_cmd.stderr(Stdio::null());
+        std_cmd.stdin(Stdio::null());
         let mut tokio_cmd: TokioCommand = std_cmd.into();
         let mut child = tokio_cmd.spawn()?;
         let stdout = child.stdout.take().ok_or_else(|| {
