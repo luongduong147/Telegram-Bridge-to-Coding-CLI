@@ -37,11 +37,24 @@ pub async fn handle_prompt(
     let chat_id = msg.chat.id;
     tracing::info!("handle_prompt: text={:?} chat={}", text, chat_id);
 
-    let mut sess = session.lock().await;
-    let cli_config = config.default_cli_config();
-    let mut backend = create_backend(cli_config);
-    let workdir = config.current_workdir().to_string_lossy().to_string();
-    let continue_session = !sess.is_expired();
+    let cli_config;
+    let workdir;
+    let continue_session;
+    {
+        let mut sess = session.lock().await;
+        cli_config = if sess.active_cli_name.is_empty() {
+            config.default_cli_config().clone()
+        } else {
+            match config.get_cli(&sess.active_cli_name) {
+                Some(c) => c.clone(),
+                None => config.default_cli_config().clone(),
+            }
+        };
+        workdir = config.workdirs[sess.active_workdir_index].to_string_lossy().to_string();
+        continue_session = !sess.is_expired();
+    }
+
+    let mut backend = create_backend(&cli_config);
 
     let sent = bot
         .send_message(chat_id, "\u{1f680} *Dang khoi tao\\.\\.\\.*")
@@ -162,7 +175,10 @@ pub async fn handle_prompt(
     .reply_markup(kb)
     .await?;
 
-    sess.touch();
+    {
+        let mut sess = session.lock().await;
+        sess.touch();
+    }
 
     let mut app = app_state.lock().await;
     app.ui_states.retain(|_, s| !s.has_finished);

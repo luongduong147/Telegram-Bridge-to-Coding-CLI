@@ -10,6 +10,11 @@ pub trait CliBackend: Send + Sync {
         prompt: &str,
         continue_session: bool,
     ) -> StdCommand;
+    fn build_json_command(
+        &self,
+        workdir: &str,
+        prompt: &str,
+    ) -> StdCommand;
     fn process_line(&mut self, line: &str) -> Option<(BlockType, String)>;
 }
 

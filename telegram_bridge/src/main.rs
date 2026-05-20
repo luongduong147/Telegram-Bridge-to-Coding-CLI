@@ -9,6 +9,7 @@ mod filter;
 mod markdown;
 mod markdownv2;
 mod cli;
+mod json_parser;
 
 pub use bot::AppState;
 

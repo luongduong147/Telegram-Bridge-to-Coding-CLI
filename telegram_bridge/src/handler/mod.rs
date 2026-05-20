@@ -21,12 +21,16 @@ pub enum BotCommand {
     Check,
     #[command(description = "Show detailed session status")]
     Status,
-    #[command(description = "Select CLI backend")]
+    #[command(description = "Select CLI backend (usage: /cli name)")]
     Cli,
     #[command(description = "Interrupt current execution")]
     Interrupt,
-    #[command(description = "Select working directory")]
+    #[command(description = "Select working directory (usage: /workdir index)")]
     Workdir,
+    #[command(description = "Quick mode - compact output without /json")]
+    Quick,
+    #[command(description = "Show thinking - full JSON with reasoning & tokens")]
+    Showthinking,
     #[command(description = "Show this help")]
     Help,
 }
@@ -51,7 +55,9 @@ pub async fn handle_message(
     };
 
     match BotCommand::parse(text, "") {
-        Ok(cmd) => handle_slash(bot, msg, cmd, config, session).await,
+        Ok(cmd) => {
+            handle_slash(bot, msg, cmd, config, session, app_state).await
+        }
         Err(_) => {
             prompt::handle_prompt(bot, msg, config, session, app_state).await
         }
@@ -64,6 +70,7 @@ async fn handle_slash(
     cmd: BotCommand,
     config: Arc<Config>,
     session: Arc<Mutex<OpenCodeSession>>,
+    app_state: Arc<Mutex<AppState>>,
 ) -> HandlerResult {
     match cmd {
         BotCommand::Start | BotCommand::Help => {
@@ -76,13 +83,19 @@ async fn handle_slash(
             slash::handle_status(&bot, &msg, &session, &config).await
         }
         BotCommand::Cli => {
-            slash::handle_cli(&bot, &msg, &config).await
+            slash::handle_cli(&bot, &msg, &config, &session).await
         }
         BotCommand::Interrupt => {
             slash::handle_interrupt(&bot, &msg).await
         }
         BotCommand::Workdir => {
-            slash::handle_workdir(&bot, &msg, &config).await
+            slash::handle_workdir(&bot, &msg, &config, &session).await
+        }
+        BotCommand::Quick => {
+            slash::handle_quick(bot, msg, config, session, app_state).await
+        }
+        BotCommand::Showthinking => {
+            slash::handle_showthinking(bot, msg, config, session, app_state).await
         }
     }
 }

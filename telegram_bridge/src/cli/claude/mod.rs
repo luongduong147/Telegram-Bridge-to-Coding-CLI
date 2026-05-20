@@ -27,6 +27,19 @@ impl super::CliBackend for ClaudeBackend {
         cmd
     }
 
+    fn build_json_command(
+        &self,
+        workdir: &str,
+        prompt: &str,
+    ) -> StdCommand {
+        let mut cmd = StdCommand::new(&self.config.bin_path);
+        cmd.arg("exec");
+        cmd.arg("--json");
+        cmd.arg(prompt);
+        cmd.current_dir(workdir);
+        cmd
+    }
+
     fn process_line(&mut self, line: &str) -> Option<(BlockType, String)> {
         let t = line.trim();
         if t.is_empty() {

@@ -4,9 +4,8 @@ use tokio::process::{Child, Command as TokioCommand};
 
 use crate::cli::CliBackend;
 
-const CLEAR_ENV_VARS: &[&str] = &[
-    "OPENCODE", "OPENCODE_PID", "OPENCODE_PROCESS_ROLE",
-    "OPENCODE_HOME", "OPENCODE_RUN_ID",
+pub const CLEAR_ENV_VARS: &[&str] = &[
+    "OPENCODE_PID", "OPENCODE_PROCESS_ROLE", "OPENCODE_RUN_ID",
 ];
 
 pub struct InteractiveStream {

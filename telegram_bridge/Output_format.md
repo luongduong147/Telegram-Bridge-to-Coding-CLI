@@ -146,12 +146,12 @@ link doc opencode cli: https://opencode.ai/docs/cli/, phần opencode run
 ## 5. Yêu cầu
 Đọc kỹ hai link docs của 2 cli
 Nhận biết, parsing block output chuẩn
-Stream qua tin nhắn telegram 
+Stream qua tin nhắn telegram với từng block usercontext - command exec - response 
 Định dạng markdown V2, not html
 Đọc các cờ flags trong các phần codex exec hay opencode run để thêm các slash command cho các provider này
 Phát triển thành 2 slash (builtin command cho telegrambridge): 
-1. /quick , lúc này, thực hiện trả kết quả 
-2. /showthinking, người dùng gọi slash này, chuyển qua gọi cli với cờ --json hoặc --format json
+1. /quick , lúc này, thực hiện trả kết quả usercontext - command exec - response 
+2. /showthinking, người dùng gọi slash này, chuyển qua gọi cli với cờ --json hoặc --format json, thực hiện parse json và làm theo instruction ở phần ##6.
 
 ## 6. Với format json
 1. Xây dựng bộ parse json 
